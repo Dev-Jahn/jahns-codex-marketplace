@@ -44,8 +44,10 @@ jobs:
           codex plugin list --marketplace jahns-codex-marketplace --available --json \
             | jq -e '.available[] | select(.name == "waystone")' >/dev/null
           install=$(codex plugin add waystone@jahns-codex-marketplace --json)
-          jq -e '.name == "waystone" and \
-            .pluginId == "waystone@jahns-codex-marketplace"' <<<"$install" >/dev/null
+          jq -e '
+            .name == "waystone" and
+            .pluginId == "waystone@jahns-codex-marketplace"
+          ' <<<"$install" >/dev/null
           installed_path=$(jq -r .installedPath <<<"$install")
           jq -e '.name == "waystone" and .version == "0.8.3"' \
             "$installed_path/.codex-plugin/plugin.json" >/dev/null
