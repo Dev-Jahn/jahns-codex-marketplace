@@ -1,0 +1,21 @@
+{
+  "name": "jahns-codex-marketplace",
+  "interface": {
+    "displayName": "Jahn's Codex Marketplace"
+  },
+  "plugins": [
+    {
+      "name": "waystone",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/Dev-Jahn/waystone.git",
+        "sha": "dfeb35069dec6ec706a58f5ac818faeaea69ba4c"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}
