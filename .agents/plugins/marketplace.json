@@ -9,7 +9,7 @@
       "source": {
         "source": "url",
         "url": "https://github.com/Dev-Jahn/waystone.git",
-        "sha": "2cf59586056df8f3f79faf88b05cecbfd60c3ef1"
+        "sha": "a3db9b511a0c15dffbcd9e1457c1d0e69374bf4b"
       },
       "policy": {
         "installation": "AVAILABLE",
