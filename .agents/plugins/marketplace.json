@@ -9,14 +9,14 @@
       "source": {
         "source": "url",
         "url": "https://github.com/Dev-Jahn/hippo.git",
-        "sha": "4061860bc0d07a0abebbdd54df8e8b0df4f3aac6"
+        "sha": "ec2b679766d7b0b17768f6898297bade49b89c02"
       },
       "policy": {
         "installation": "AVAILABLE",
         "authentication": "ON_INSTALL"
       },
       "category": "Developer Tools",
-      "version": "1.4.0",
+      "version": "1.4.1",
       "description": "hippo — your project's hippocampus: task registry, outcome ledger, and background clerks that give agents perception and memory — evidence over enforcement."
     }
   ]
