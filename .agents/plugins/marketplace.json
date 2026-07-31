@@ -5,17 +5,19 @@
   },
   "plugins": [
     {
-      "name": "waystone",
+      "name": "hippo",
       "source": {
         "source": "url",
-        "url": "https://github.com/Dev-Jahn/waystone.git",
+        "url": "https://github.com/Dev-Jahn/hippo.git",
         "sha": "a3db9b511a0c15dffbcd9e1457c1d0e69374bf4b"
       },
       "policy": {
         "installation": "AVAILABLE",
         "authentication": "ON_INSTALL"
       },
-      "category": "Developer Tools"
+      "category": "Developer Tools",
+      "version": "1.4.0",
+      "description": "hippo — your project's hippocampus: task registry, outcome ledger, and background clerks that give agents perception and memory — evidence over enforcement."
     }
   ]
 }
