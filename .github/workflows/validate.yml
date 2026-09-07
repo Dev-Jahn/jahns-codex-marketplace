@@ -25,7 +25,7 @@ jobs:
           jq -e '
             .name == "jahns-codex-marketplace" and
             (.interface.displayName | type == "string" and length > 0) and
-            (.plugins | length == 1) and
+            (.plugins | length == 2) and
             (.plugins[0].name == "hippo") and
             (.plugins[0].source.source == "url") and
             (.plugins[0].source.url == "https://github.com/Dev-Jahn/hippocampus.git") and
@@ -33,29 +33,35 @@ jobs:
             (.plugins[0].version | type == "string" and length > 0) and
             (.plugins[0].policy.installation == "AVAILABLE") and
             (.plugins[0].policy.authentication == "ON_INSTALL") and
-            (.plugins[0].category == "Developer Tools")
+            (.plugins[0].category == "Developer Tools") and
+            (.plugins[1].name == "khala-network-codex") and
+            (.plugins[1].source.source == "url") and
+            (.plugins[1].source.url == "https://github.com/Dev-Jahn/khala-network-codex.git") and
+            (.plugins[1].source.sha | test("^[0-9a-f]{40}$")) and
+            (.plugins[1].version | type == "string" and length > 0) and
+            (.plugins[1].policy.installation == "AVAILABLE") and
+            (.plugins[1].policy.authentication == "ON_INSTALL") and
+            (.plugins[1].category == "Developer Tools")
           ' "$file" >/dev/null
 
       - name: Install Codex CLI
-        run: npm install --global @openai/codex@0.144.4
+        run: npm install --global @openai/codex@0.153.4
 
-      - name: Install hippo from the marketplace
+      - name: Install each plugin from the marketplace
         run: |
           set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/codex-home"
           export CODEX_HOME="$RUNNER_TEMP/codex-home"
-          mkdir -p "$CODEX_HOME"
           codex plugin marketplace add "$GITHUB_WORKSPACE"
-          codex plugin list --marketplace jahns-codex-marketplace --available --json \
-            | jq -e '.available[] | select(.name == "hippo")' >/dev/null
-          install=$(codex plugin add hippo@jahns-codex-marketplace --json)
-          jq -e '
-            .name == "hippo" and
-            .pluginId == "hippo@jahns-codex-marketplace"
-          ' <<<"$install" >/dev/null
-          installed_path=$(jq -r .installedPath <<<"$install")
-          expected=$(jq -r '.plugins[0].version' .agents/plugins/marketplace.json)
-          jq -e --arg v "$expected" '.name == "hippo" and .version == $v' \
-            "$installed_path/.codex-plugin/plugin.json" >/dev/null
-          codex plugin list --marketplace jahns-codex-marketplace --json \
-            | jq -e '.installed[] | select(.name == "hippo" and .installed == true)' \
-            >/dev/null
+          for plugin in hippo khala-network-codex; do
+            codex plugin list --marketplace jahns-codex-marketplace --available --json \
+              | jq -e --arg name "$plugin" '.available[] | select(.name == $name)' >/dev/null
+            install=$(codex plugin add "$plugin@jahns-codex-marketplace" --json)
+            jq -e --arg name "$plugin" '.name == $name and .pluginId == ($name + "@jahns-codex-marketplace")' <<<"$install" >/dev/null
+            installed_path=$(jq -r .installedPath <<<"$install")
+            expected=$(jq -r --arg name "$plugin" '.plugins[] | select(.name == $name) | .version' .agents/plugins/marketplace.json)
+            jq -e --arg name "$plugin" --arg v "$expected" '.name == $name and .version == $v' \
+              "$installed_path/.codex-plugin/plugin.json" >/dev/null
+            codex plugin list --marketplace jahns-codex-marketplace --json \
+              | jq -e --arg name "$plugin" '.installed[] | select(.name == $name and .installed == true)' >/dev/null
+          done
