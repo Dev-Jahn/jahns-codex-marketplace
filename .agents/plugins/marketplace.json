@@ -39,14 +39,14 @@
       "source": {
         "source": "url",
         "url": "https://github.com/Dev-Jahn/hwp-hwpx-editor.git",
-        "sha": "1c11ae52ddb8354254605d70a6b30880fafb5eb8"
+        "sha": "0a3fb6585d5144310bb6088bf92bf2007cb8438b"
       },
       "policy": {
         "installation": "AVAILABLE",
         "authentication": "ON_INSTALL"
       },
       "category": "Productivity",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "description": "Edit text, native bullets, tables, pictures, and formatting in HWP/HWPX documents, with structural validation and PDF rendering."
     }
   ]
