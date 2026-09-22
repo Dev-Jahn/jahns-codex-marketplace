@@ -24,7 +24,7 @@
       "source": {
         "source": "url",
         "url": "https://github.com/Dev-Jahn/khala-network-codex.git",
-        "sha": "6554816e8acd64671de5dae0a64ca5fc07bdc82a"
+        "sha": "3c4f2ea1b9744e78d6f229b1de39563fca2266a1"
       },
       "policy": {
         "installation": "AVAILABLE",
