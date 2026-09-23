@@ -9,14 +9,14 @@
       "source": {
         "source": "url",
         "url": "https://github.com/Dev-Jahn/hippocampus.git",
-        "sha": "7385559ff972258774b47fc7c062af6afe06bde6"
+        "sha": "c739f7f56931d4f3a074493ded7498bea7390ae6"
       },
       "policy": {
         "installation": "AVAILABLE",
         "authentication": "ON_INSTALL"
       },
       "category": "Developer Tools",
-      "version": "1.14.1",
+      "version": "1.14.2",
       "description": "hippocampus — perception and memory for coding agents: task registry, outcome ledger, and background clerks that turn transcripts into evidence. Records; never enforces. CLI and slash commands are `hippo`."
     },
     {
