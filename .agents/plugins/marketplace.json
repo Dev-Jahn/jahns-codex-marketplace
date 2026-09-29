@@ -54,14 +54,14 @@
       "source": {
         "source": "url",
         "url": "https://github.com/Dev-Jahn/jahns-stl.git",
-        "sha": "28c0f2734832f5b58b416383fbf366b9d7e7a6cc"
+        "sha": "6bd8127659d23edc930fdc9ee247cbce32f8eba7"
       },
       "policy": {
         "installation": "AVAILABLE",
         "authentication": "ON_INSTALL"
       },
       "category": "Productivity",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "description": "Simplified Technical Language for LLM agents: one skill that keeps reports, plans, design documents, and instructions free of invented jargon and easy to read, in any language."
     }
   ]
