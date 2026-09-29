@@ -15,34 +15,31 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      # The version is asserted against the manifest itself, never hard-coded here:
-      # a version pinned in this file is exactly what went stale when the plugin was
-      # renamed waystone -> hippo and every sync failed CI for two days unnoticed.
+      # The rules apply to every entry and name no plugin, count, or version. A pinned value here
+      # is what went stale twice: the rename waystone -> hippo, then a third plugin added while
+      # this file still asserted two. Both times every sync failed CI unnoticed.
       - name: Validate marketplace contract
         run: |
           set -euo pipefail
           file=.agents/plugins/marketplace.json
-          jq -e '
-            .name == "jahns-codex-marketplace" and
-            (.interface.displayName | type == "string" and length > 0) and
-            (.plugins | length == 2) and
-            (.plugins[0].name == "hippo") and
-            (.plugins[0].source.source == "url") and
-            (.plugins[0].source.url == "https://github.com/Dev-Jahn/hippocampus.git") and
-            (.plugins[0].source.sha | test("^[0-9a-f]{40}$")) and
-            (.plugins[0].version | type == "string" and length > 0) and
-            (.plugins[0].policy.installation == "AVAILABLE") and
-            (.plugins[0].policy.authentication == "ON_INSTALL") and
-            (.plugins[0].category == "Developer Tools") and
-            (.plugins[1].name == "khala-network-codex") and
-            (.plugins[1].source.source == "url") and
-            (.plugins[1].source.url == "https://github.com/Dev-Jahn/khala-network-codex.git") and
-            (.plugins[1].source.sha | test("^[0-9a-f]{40}$")) and
-            (.plugins[1].version | type == "string" and length > 0) and
-            (.plugins[1].policy.installation == "AVAILABLE") and
-            (.plugins[1].policy.authentication == "ON_INSTALL") and
-            (.plugins[1].category == "Developer Tools")
-          ' "$file" >/dev/null
+          fail() { echo "::error file=$file::$*"; exit 1; }
+          jq -e . "$file" >/dev/null || fail "not valid JSON"
+          jq -e '(.name | type == "string" and length > 0)' "$file" >/dev/null \
+            || fail "the marketplace has no name"
+          jq -e '(.plugins | type == "array")' "$file" >/dev/null \
+            || fail "plugins must be an array"
+          jq -e '[.plugins[].name] | length == (unique | length)' "$file" >/dev/null \
+            || fail "two entries have the same name: $(jq -c '[.plugins[].name] | group_by(.) | map(select(length > 1) | .[0])' "$file")"
+          # The registry pins each plugin to an exact commit, so every entry needs a full sha.
+          bad=$(jq -c '[.plugins[] | select(
+            ((.name | type) != "string") or ((.name | test("^[A-Za-z0-9._-]+$")) | not) or
+            ((.source | type) != "object") or
+            ((.source.sha // "" | test("^[0-9a-f]{40}$")) | not) or
+            ((.version | type) != "string") or (.version == "")
+          ) | .name]' "$file")
+          [ "$bad" = "[]" ] \
+            || fail "these entries need a name (letters, digits, dot, underscore, hyphen), a source with a 40-character sha, and a version: $bad"
+          echo "contract ok: $(jq -r '.plugins | length' "$file") plugin(s)"
 
       - name: Install Codex CLI
         run: npm install --global @openai/codex@0.153.4
@@ -50,18 +47,33 @@ jobs:
       - name: Install each plugin from the marketplace
         run: |
           set -euo pipefail
+          file=.agents/plugins/marketplace.json
+          fail() { echo "::error::$*"; exit 1; }
           mkdir -p "$RUNNER_TEMP/codex-home"
           export CODEX_HOME="$RUNNER_TEMP/codex-home"
+          marketplace=$(jq -r .name "$file")
           codex plugin marketplace add "$GITHUB_WORKSPACE"
-          for plugin in hippo khala-network-codex; do
-            codex plugin list --marketplace jahns-codex-marketplace --available --json \
-              | jq -e --arg name "$plugin" '.available[] | select(.name == $name)' >/dev/null
-            install=$(codex plugin add "$plugin@jahns-codex-marketplace" --json)
-            jq -e --arg name "$plugin" '.name == $name and .pluginId == ($name + "@jahns-codex-marketplace")' <<<"$install" >/dev/null
+          for plugin in $(jq -r '.plugins[].name' "$file"); do
+            codex plugin list --marketplace "$marketplace" --available --json \
+              | jq -e --arg name "$plugin" '.available[] | select(.name == $name)' >/dev/null \
+              || fail "$plugin: codex does not list it as available"
+            install=$(codex plugin add "$plugin@$marketplace" --json) \
+              || fail "$plugin: codex could not install it"
+            jq -e --arg name "$plugin" --arg id "$plugin@$marketplace" \
+              '.name == $name and .pluginId == $id' <<<"$install" >/dev/null \
+              || fail "$plugin: codex installed something else: $install"
             installed_path=$(jq -r .installedPath <<<"$install")
-            expected=$(jq -r --arg name "$plugin" '.plugins[] | select(.name == $name) | .version' .agents/plugins/marketplace.json)
+            expected=$(jq -r --arg name "$plugin" '.plugins[] | select(.name == $name) | .version' "$file")
             jq -e --arg name "$plugin" --arg v "$expected" '.name == $name and .version == $v' \
-              "$installed_path/.codex-plugin/plugin.json" >/dev/null
-            codex plugin list --marketplace jahns-codex-marketplace --json \
-              | jq -e --arg name "$plugin" '.installed[] | select(.name == $name and .installed == true)' >/dev/null
+              "$installed_path/.codex-plugin/plugin.json" >/dev/null \
+              || fail "$plugin: the marketplace says version $expected, the installed manifest says $(jq -c '{name, version}' "$installed_path/.codex-plugin/plugin.json")"
+            # A manifest that declares skills must ship at least one skill file once installed.
+            if jq -e '.skills' "$installed_path/.codex-plugin/plugin.json" >/dev/null; then
+              [ -n "$(find "$installed_path" -path '*/skills/*/SKILL.md' -print -quit)" ] \
+                || fail "$plugin: the manifest declares skills, but no SKILL.md is installed"
+            fi
+            codex plugin list --marketplace "$marketplace" --json \
+              | jq -e --arg name "$plugin" '.installed[] | select(.name == $name and .installed == true)' >/dev/null \
+              || fail "$plugin: codex does not list it as installed"
+            echo "ok: $plugin $expected"
           done

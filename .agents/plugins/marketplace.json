@@ -48,6 +48,21 @@
       "category": "Productivity",
       "version": "0.1.1",
       "description": "Edit text, native bullets, tables, pictures, and formatting in HWP/HWPX documents, with structural validation and PDF rendering."
+    },
+    {
+      "name": "jahns-stl",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/Dev-Jahn/jahns-stl.git",
+        "sha": "488fb8b150673fcda66c8bdcdc65f34d5a49d802"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity",
+      "version": "0.1.0",
+      "description": "Simplified Technical Language for LLM agents: one skill that keeps reports, plans, design documents, and instructions free of invented jargon and easy to read, in any language."
     }
   ]
 }
